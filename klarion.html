@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klarion, the secret scanner that checks its own findings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* dark-clay: warm near-black canvas, never cool gray */
+    --canvas:#14110f;
+    --surface-soft:#1b1815;
+    --surface-card:#221e1b;
+    --surface-strong:#2a2521;
+    --hairline:#332d28;
+    --ink:#faf7f2;
+    --body:#c7bfb5;
+    --muted:#968d83;
+    --muted-soft:#6b635b;
+    /* saturated brand cards */
+    --pink:#ff4d8b;
+    --lavender:#b8a4ed;
+    --peach:#ffb084;
+    --ochre:#e8b94a;
+    --mint:#a4d4c5;
+    --coral:#ff6b5a;
+    --teal:#1a3a3a;
+    --on-dark:#ffffff;
+    --on-light:#0a0a0a;
+    /* radius */
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--canvas);color:var(--body);
+    font:400 16px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+  /* display type — weight 500, negative tracking, never bolder */
+  .d-xl{font-weight:500;font-size:clamp(40px,6.6vw,72px);line-height:1;letter-spacing:-.05em;color:var(--ink)}
+  .d-lg{font-weight:500;font-size:clamp(32px,4.6vw,56px);line-height:1.05;letter-spacing:-.045em;color:var(--ink)}
+  .d-md{font-weight:500;font-size:clamp(28px,3.4vw,40px);line-height:1.1;letter-spacing:-.03em;color:var(--ink)}
+  .d-sm{font-weight:500;font-size:32px;line-height:1.15;letter-spacing:-.02em;color:var(--ink)}
+  .t-lg{font-weight:600;font-size:24px;line-height:1.3;letter-spacing:-.012em;color:var(--ink)}
+  .t-md{font-weight:600;font-size:18px;line-height:1.4;color:var(--ink)}
+  .cap-up{font-weight:600;font-size:12px;line-height:1.4;letter-spacing:1.5px;text-transform:uppercase}
+  .mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  /* buttons — flat, 12px radius, 44px tall */
+  .btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;
+    border-radius:var(--r-md);font-weight:600;font-size:14px;line-height:1;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--ink);color:var(--on-light)}
+  .btn-primary:hover{background:#fff}
+  .btn-secondary{background:transparent;color:var(--ink);border-color:var(--hairline)}
+  .btn-secondary:hover{border-color:var(--muted)}
+  .btn-on-color{background:var(--ink);color:var(--on-light)}
+  /* nav */
+  nav{height:64px;border-bottom:1px solid var(--hairline)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;color:var(--ink);letter-spacing:-.02em}
+  .brand .m{width:22px;height:22px;border-radius:7px;background:var(--pink)}
+  .brand small{color:var(--muted-soft);font-weight:500;font-size:13px;letter-spacing:0}
+  .nav-links{display:flex;gap:28px;align-items:center;font-weight:500;font-size:14px;color:var(--body)}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-r{display:flex;gap:12px;align-items:center}
+  /* section rhythm 96px */
+  section{padding:96px 0}
+  .band{border-top:1px solid var(--hairline)}
+  /* hero 7/5 */
+  .hero{display:grid;grid-template-columns:7fr 5fr;gap:56px;align-items:center}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface-card);color:var(--body);
+    border-radius:var(--r-pill);padding:6px 14px;font-size:13px;font-weight:500;margin-bottom:24px}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--mint)}
+  .hero p.lead{font-size:18px;color:var(--body);max-width:520px;margin:20px 0 32px}
+  .hero .row{display:flex;gap:12px;flex-wrap:wrap}
+  .hero .after{margin-top:24px;font-size:14px;color:var(--muted)}
+  .hero .after b{color:var(--ink);font-weight:600}
+  /* terminal artifact */
+  .term{background:var(--surface-card);border:1px solid var(--hairline);border-radius:var(--r-xl);overflow:hidden}
+  .term .bar{display:flex;gap:7px;padding:14px 18px;border-bottom:1px solid var(--hairline)}
+  .term .bar i{width:10px;height:10px;border-radius:50%;background:var(--surface-strong)}
+  .term pre{padding:22px;font:13px/1.75 "SF Mono",ui-monospace,Menlo,Consolas,monospace;color:var(--body);overflow-x:auto}
+  .term .c{color:var(--mint)}.term .ok{color:var(--mint)}.term .p{color:var(--pink)}
+  .term .o{color:var(--ochre)}.term .m{color:var(--muted-soft)}
+  /* feature cards — saturated, cycled, no shadow, 24px radius */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .card{border-radius:var(--r-xl);padding:32px;min-height:280px;display:flex;flex-direction:column;justify-content:space-between}
+  .card h3{font-weight:600;font-size:18px;line-height:1.4;margin-bottom:10px}
+  .card p{font-size:15px;line-height:1.5}
+  .card .frag{margin-top:24px;border-radius:var(--r-md);padding:14px 16px;
+    font:12px/1.6 "SF Mono",ui-monospace,Menlo,monospace}
+  .c-pink{background:var(--pink);color:var(--on-dark)}
+  .c-pink p{color:rgba(255,255,255,.86)}
+  .c-pink .frag{background:rgba(0,0,0,.22);color:rgba(255,255,255,.92)}
+  .c-lav{background:var(--lavender);color:var(--on-light)}
+  .c-lav p{color:rgba(10,10,10,.72)}
+  .c-lav .frag{background:rgba(255,255,255,.4);color:var(--on-light)}
+  .c-ochre{background:var(--ochre);color:var(--on-light)}
+  .c-ochre p{color:rgba(10,10,10,.72)}
+  .c-ochre .frag{background:rgba(255,255,255,.38);color:var(--on-light)}
+  .c-peach{background:var(--peach);color:var(--on-light)}
+  .c-peach p{color:rgba(10,10,10,.72)}
+  .c-mint{background:var(--mint);color:var(--on-light)}
+  .c-mint p{color:rgba(10,10,10,.72)}
+  /* section head */
+  .head{max-width:640px;margin-bottom:56px}
+  .head .cap-up{color:var(--pink);margin-bottom:16px}
+  .head p{font-size:18px;color:var(--muted);margin-top:16px}
+  /* comparison table */
+  .tbl{border:1px solid var(--hairline);border-radius:var(--r-lg);overflow:hidden}
+  table{border-collapse:collapse;width:100%;font-size:15px}
+  th,td{padding:16px 20px;text-align:center;border-bottom:1px solid var(--hairline)}
+  th{background:var(--surface-soft);color:var(--muted);font-weight:600;font-size:13px}
+  td:first-child,th:first-child{text-align:left;color:var(--ink);font-weight:500}
+  .kcol{background:var(--surface-card)} th.kcol{color:var(--ink)}
+  .yes{color:var(--mint);font-weight:600}.no{color:var(--muted-soft)}.part{color:var(--ochre)}
+  tr:last-child td{border-bottom:none}
+  /* pricing */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .tier{background:transparent;border:1px solid var(--hairline);border-radius:var(--r-lg);padding:32px;display:flex;flex-direction:column}
+  .tier.featured{background:var(--teal);border-color:var(--teal)}
+  .tier.featured *{color:var(--on-dark)}
+  .tier.featured .amt small,.tier.featured li{color:rgba(255,255,255,.78)}
+  .tier .name{font-weight:600;font-size:18px;color:var(--ink);margin-bottom:12px}
+  .tier .amt{font-weight:500;font-size:40px;letter-spacing:-.03em;color:var(--ink);line-height:1.1}
+  .tier .amt small{font-size:14px;font-weight:400;color:var(--muted);letter-spacing:0}
+  .tier .who{font-size:13px;color:var(--muted);margin:8px 0 24px;min-height:36px}
+  .tier ul{list-style:none;display:grid;gap:10px;margin-bottom:28px;flex:1}
+  .tier li{font-size:14px;color:var(--body);padding-left:22px;position:relative}
+  .tier li::before{content:"→";position:absolute;left:0;color:var(--muted-soft)}
+  .tier.featured li::before{color:var(--mint)}
+  .tier .btn{width:100%}
+  .note{margin-top:24px;font-size:13px;color:var(--muted-soft);text-align:center}
+  /* cta band */
+  .cta-band{background:var(--surface-soft);border-radius:var(--r-xl);padding:80px;text-align:center}
+  .cta-band p{font-size:18px;color:var(--muted);margin:16px 0 32px}
+  /* family band */
+  .fam{background:var(--surface-card);border-radius:var(--r-xl);padding:40px;
+    display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap}
+  .fam .cap-up{color:var(--lavender);margin-bottom:12px}
+  .fam p{color:var(--muted);font-size:15px;margin-top:8px;max-width:560px}
+  /* footer — warm, same family as canvas (no cool dark switch) */
+  footer{background:var(--surface-soft);padding:80px 0 40px;margin-top:96px}
+  .fcols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:56px}
+  .fcols h4{font-weight:600;font-size:13px;color:var(--ink);margin-bottom:16px}
+  .fcols a{display:block;font-size:14px;color:var(--muted);margin-bottom:10px}
+  .fcols a:hover{color:var(--ink)}
+  .fbot{border-top:1px solid var(--hairline);padding-top:24px;font-size:13px;color:var(--muted-soft);
+    display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .disc{font-size:12px;color:#4a443e;margin-top:16px;max-width:820px}
+  @media(max-width:1024px){.cards,.tiers{grid-template-columns:1fr 1fr}}
+  @media(max-width:768px){
+    .wrap{padding:0 20px}
+    section{padding:64px 0}
+    .hero{grid-template-columns:1fr;gap:40px}
+    .cards,.tiers,.fcols{grid-template-columns:1fr}
+    .nav-links{display:none}
+    .cta-band{padding:48px 24px}
+    .fam{padding:28px}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="brand"><span class="m"></span>Klarion <small>by Klargate</small></div>
+  <div class="nav-links">
+    <a href="#why">Product</a><a href="#compare">Compare</a><a href="https://github.com/0x1Adi/Klarion/blob/main/docs/reference.md">Docs</a>
+  </div>
+  <div class="nav-r"><a href="https://github.com/0x1Adi/Klarion" class="btn btn-primary">Install</a></div>
+</div></nav>
+
+<!-- HERO 7/5 -->
+<section><div class="wrap hero">
+  <div>
+    <span class="badge"><span class="dot"></span>Open source · runs in your environment</span>
+    <h1 class="d-xl">89% of Klarion's alerts are a real secret.</h1>
+    <p class="lead">Fast local checks flag anything that looks like a secret. Then a model reads each one with the code around it and rules out the fixtures, placeholders and identifiers. You triage what is left.</p>
+    <div class="row">
+      <a href="https://github.com/0x1Adi/Klarion" class="btn btn-primary">Install</a>
+      <a href="https://github.com/0x1Adi/Klarion/blob/main/benchmark/REPORT.md" class="btn btn-secondary">Read the benchmark</a>
+    </div>
+    <div class="after">Measured on CredData: 337 real repositories, code outside test folders. Klarion also found about <b>1.7x more</b> real secrets than gitleaks. <a href="https://github.com/0x1Adi/Klarion/blob/main/benchmark/REPORT.md">Method and caveats</a>.</div>
+  </div>
+  <div class="term">
+    <div class="bar"><i></i><i></i><i></i></div>
+    <pre><span class="c">$</span> klarion scan . --explain
+
+<span class="ok">✔</span> 1,204 files · 3,180 commits
+  <span class="ok">2 secrets</span> <span class="m">· 198 suppressed</span>
+
+<span class="p">CRITICAL</span>  aws secret key
+  <span class="m">config/prod.env:14</span>
+  verdict: <span class="p">SECRET</span> <span class="m">· live credential,
+  S3 write access</span>
+
+<span class="o">HIGH</span>      stripe key
+  <span class="m">services/billing.py:39</span>
+  verdict: <span class="o">SECRET</span> <span class="m">· live payments key</span>
+
+<span class="m">198 suppressed — dead keys, fixtures,
+look-alikes. audit: --show-suppressed</span></pre>
+  </div>
+</div></section>
+
+<!-- WHY — saturated cards, cycled -->
+<section id="why" class="band"><div class="wrap">
+  <div class="head">
+    <div class="cap-up">Why Klarion</div>
+    <h2 class="d-lg">Scoped, explained, and checked before it reaches you.</h2>
+    <p>Detection was never the hard part. Trusting the alert is.</p>
+  </div>
+  <div class="cards">
+    <div class="card c-pink">
+      <div>
+        <h3>Adjudicated, not guessed</h3>
+        <p>An AI issues a verdict on every candidate: real secret or noise. On CredData, 89% of what it let through was real. detect-secrets: 34%.</p>
+      </div>
+      <div class="frag">candidates &nbsp;47<br>verdict: secret &nbsp;2<br>verdict: noise &nbsp;45</div>
+    </div>
+    <div class="card c-lav">
+      <div>
+        <h3>A reason for every finding</h3>
+        <p>Not "high-entropy string, line 42." You get what it is, why it's a secret, and how to fix it.</p>
+      </div>
+      <div class="frag">"Git commit SHA pinned to<br>actions/checkout — version<br>pin, not a secret."</div>
+    </div>
+    <div class="card c-ochre">
+      <div>
+        <h3>Runs where your code lives</h3>
+        <p>Open-source engine on your machine. Your code and secrets never leave — and you can verify that.</p>
+      </div>
+      <div class="frag">$ brew install klarion<br>→ local · no telemetry<br>→ MIT licensed</div>
+    </div>
+  </div>
+</div></section>
+
+<!-- COMPARE -->
+<section id="compare" class="band"><div class="wrap">
+  <div class="head">
+    <div class="cap-up">Compare</div>
+    <h2 class="d-lg">Open and trustworthy.</h2>
+    <p>Regex tools are open but noisy. Closed platforms are precise but you can't see the engine.</p>
+  </div>
+  <div class="tbl">
+    <table>
+      <tr><th>&nbsp;</th><th class="kcol">Klarion</th><th>Gitleaks</th><th>TruffleHog</th><th>GitGuardian</th></tr>
+      <tr><td>Open-source core</td><td class="kcol yes">Yes</td><td class="yes">Yes</td><td class="part">AGPL</td><td class="part">CLI only</td></tr>
+      <tr><td>AI verdict + reason</td><td class="kcol yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="part">Filter</td></tr>
+      <tr><td>Published precision benchmark</td><td class="kcol yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Runs in your environment</td><td class="kcol yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="part">Partial</td></tr>
+    </table>
+  </div>
+</div></section>
+
+<!-- OPEN SOURCE + PROVMCP -->
+<section id="provmcp" class="band"><div class="wrap">
+  <div class="head">
+    <div class="cap-up">Open source</div>
+    <h2 class="d-lg">Free, and the whole engine is in the open.</h2>
+  </div>
+  <div class="tiers" style="grid-template-columns:repeat(2,1fr);max-width:820px">
+    <div class="tier featured">
+      <div class="name">Klarion</div>
+      <div class="amt">Free</div>
+      <div class="who">MIT licensed &middot; available now</div>
+      <ul><li>CLI, GitHub Action, GitLab CI, commit hooks</li><li>Claude Code plugin and MCP server</li><li>Bring your own model, or let your agent judge</li></ul>
+      <a href="https://github.com/0x1Adi/Klarion" class="btn btn-secondary">Install</a>
+    </div>
+    <div class="tier">
+      <div class="name">provmcp</div>
+      <div class="amt">Soon</div>
+      <div class="who">The other half of the gate</div>
+      <ul><li>Catches npm supply chain attacks</li><li>Before <code>npm install</code> runs</li><li>Klarion guards what you write, provmcp guards what you pull in</li></ul>
+      <span class="btn btn-secondary" style="opacity:.55;cursor:default">Coming soon</span>
+    </div>
+  </div>
+  <p class="note">Nothing to buy today. Klarion is open source and stays that way.</p>
+</div></section>
+
+<!-- CTA -->
+<section><div class="wrap">
+  <div class="cta-band">
+    <h2 class="d-md">Stop triaging false positives.</h2>
+    <p>Drop Klarion into one repo and see the real leaks in five minutes.</p>
+    <a href="https://github.com/0x1Adi/Klarion" class="btn btn-primary">Install</a>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fcols">
+    <div>
+      <div class="brand" style="margin-bottom:16px"><span class="m"></span>Klarion <small>by Klargate</small></div>
+      <p style="font-size:14px;color:var(--muted);max-width:280px">AI-adjudicated secret detection. Open source, runs in your environment.</p>
+    </div>
+    <div><h4>Product</h4><a href="#why">Overview</a><a href="#compare">Compare</a><a href="https://github.com/0x1Adi/Klarion/blob/main/benchmark/REPORT.md">Benchmark</a></div>
+    <div><h4>Developers</h4><a href="https://github.com/0x1Adi/Klarion/blob/main/docs/reference.md">Docs</a><a href="https://github.com/0x1Adi/Klarion">GitHub</a><a href="https://github.com/0x1Adi/Klarion/blob/main/docs/reference.md">CLI reference</a><a href="https://github.com/0x1Adi/Klarion/blob/main/SECURITY.md">Security</a></div>
+    <div><h4>Klargate</h4><a href="/">Company</a><a href="#provmcp">provmcp</a><a href="https://github.com/0x1Adi/Klarion/issues">Contact</a></div>
+  </div>
+  <div class="fbot">
+    <span>© 2026 Klargate. MIT licensed core. &nbsp;·&nbsp; Also from Klargate: <a href="#provmcp" style="color:var(--muted)">provmcp</a>, supply-chain defense for AI coding agents — coming soon.</span>
+    <span>Privacy · Terms · Security</span>
+  </div>
+  <p class="disc">Benchmark figures are Klarion's measured results (2026-07-09) against gitleaks, trufflehog, detect-secrets and ripsecrets. Method and raw output are published in the repo.</p>
+</div></footer>
+
+</body>
+</html>

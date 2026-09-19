@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klargate — secure what your AI writes and installs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#14110f; --surface-soft:#1b1815; --surface-card:#221e1b; --surface-strong:#2a2521;
+    --hairline:#332d28; --ink:#faf7f2; --body:#c7bfb5; --muted:#968d83; --muted-soft:#6b635b;
+    --pink:#ff4d8b; --lavender:#b8a4ed; --peach:#ffb084; --ochre:#e8b94a; --mint:#a4d4c5; --teal:#1a3a3a;
+    --on-light:#0a0a0a; --on-dark:#ffffff;
+    --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--canvas);color:var(--body);
+    font:400 16px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+  .d-xl{font-weight:500;font-size:clamp(40px,6.6vw,72px);line-height:1;letter-spacing:-.05em;color:var(--ink)}
+  .d-lg{font-weight:500;font-size:clamp(32px,4.6vw,56px);line-height:1.05;letter-spacing:-.045em;color:var(--ink)}
+  .d-md{font-weight:500;font-size:clamp(28px,3.4vw,40px);line-height:1.1;letter-spacing:-.03em;color:var(--ink)}
+  .t-lg{font-weight:600;font-size:24px;line-height:1.3;letter-spacing:-.012em;color:var(--ink)}
+  .cap-up{font-weight:600;font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
+  .mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  .btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;
+    border-radius:var(--r-md);font-weight:600;font-size:14px;line-height:1;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--ink);color:var(--on-light)}
+  .btn-primary:hover{background:#fff}
+  .btn-secondary{background:transparent;color:var(--ink);border-color:var(--hairline)}
+  .btn-secondary:hover{border-color:var(--muted)}
+  nav{height:64px;border-bottom:1px solid var(--hairline)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:18px;color:var(--ink);letter-spacing:-.02em}
+  .brand .m{width:22px;height:22px;border-radius:7px;background:var(--pink)}
+  .nav-links{display:flex;gap:28px;font-weight:500;font-size:14px;color:var(--body)}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-r{display:flex;gap:12px;align-items:center}
+  section{padding:96px 0}
+  .band{border-top:1px solid var(--hairline)}
+  .hero{max-width:860px}
+  .hero p.lead{font-size:19px;color:var(--body);max-width:600px;margin:24px 0 32px}
+  .hero p.lead b{color:var(--ink);font-weight:600}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface-card);color:var(--body);
+    border-radius:var(--r-pill);padding:6px 14px;font-size:13px;font-weight:500;margin-bottom:24px}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--mint)}
+  .head{max-width:640px;margin-bottom:56px}
+  .head .cap-up{color:var(--pink);margin-bottom:16px}
+  .head p{font-size:18px;color:var(--muted);margin-top:16px}
+  /* product cards — saturated */
+  .prods{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .prod{border-radius:var(--r-xl);padding:36px;display:flex;flex-direction:column;justify-content:space-between;min-height:340px}
+  .p-pink{background:var(--pink);color:var(--on-dark)}
+  .p-pink p{color:rgba(255,255,255,.86)}
+  .p-lav{background:var(--lavender);color:var(--on-light)}
+  .p-lav p{color:rgba(10,10,10,.72)}
+  .prod .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+  .prod h3{font-weight:500;font-size:34px;letter-spacing:-.03em;line-height:1.1}
+  .prod .st{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
+    border-radius:var(--r-pill);padding:5px 11px}
+  .p-pink .st{background:rgba(0,0,0,.24);color:#fff}
+  .p-lav .st{background:rgba(255,255,255,.45);color:var(--on-light)}
+  .prod .role{font-size:13px;font-weight:500;opacity:.75;margin-bottom:16px}
+  .prod p{font-size:15px;line-height:1.5}
+  .prod .kpis{display:flex;gap:32px;margin:28px 0 24px}
+  .prod .kpis b{display:block;font-weight:500;font-size:32px;letter-spacing:-.03em;line-height:1}
+  .prod .kpis span{font-size:12px;opacity:.7}
+  .prod .go{font-weight:600;font-size:14px}
+  /* run it */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .col{border:1px solid var(--hairline);border-radius:var(--r-lg);padding:32px}
+  .col.cloud{background:var(--teal);border-color:var(--teal)}
+  .col.cloud *{color:var(--on-dark)}
+  .col .cap-up{color:var(--muted);margin-bottom:12px}
+  .col.cloud .cap-up{color:var(--mint)}
+  .col h3{font-weight:600;font-size:20px;color:var(--ink);margin-bottom:20px;letter-spacing:-.015em}
+  .col ul{list-style:none;display:grid;gap:12px}
+  .col li{font-size:14.5px;color:var(--body);padding-left:24px;position:relative}
+  .col li::before{content:"→";position:absolute;left:0;color:var(--muted-soft)}
+  .col.cloud li{color:rgba(255,255,255,.82)}
+  .col.cloud li::before{color:var(--mint)}
+  /* pricing */
+  .tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .tier{border:1px solid var(--hairline);border-radius:var(--r-lg);padding:28px 24px}
+  .tier.featured{background:var(--ochre);border-color:var(--ochre)}
+  .tier.featured *{color:var(--on-light)}
+  .tier .name{font-weight:600;font-size:15px;color:var(--ink);margin-bottom:10px}
+  .tier .amt{font-weight:500;font-size:34px;letter-spacing:-.03em;color:var(--ink);line-height:1.1}
+  .tier .amt small{font-size:13px;font-weight:400;color:var(--muted);letter-spacing:0}
+  .tier.featured .amt small{color:rgba(10,10,10,.6)}
+  .tier .w{font-size:12.5px;color:var(--muted);margin-top:10px}
+  .tier.featured .w{color:rgba(10,10,10,.68)}
+  .note{margin-top:24px;font-size:13px;color:var(--muted-soft);text-align:center}
+  .cta-band{background:var(--surface-soft);border-radius:var(--r-xl);padding:80px;text-align:center}
+  .cta-band p{font-size:18px;color:var(--muted);margin:16px 0 32px}
+  footer{background:var(--surface-soft);padding:80px 0 40px;margin-top:96px}
+  .fcols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:56px}
+  .fcols h4{font-weight:600;font-size:13px;color:var(--ink);margin-bottom:16px}
+  .fcols a{display:block;font-size:14px;color:var(--muted);margin-bottom:10px}
+  .fcols a:hover{color:var(--ink)}
+  .fbot{border-top:1px solid var(--hairline);padding-top:24px;font-size:13px;color:var(--muted-soft);
+    display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .disc{font-size:12px;color:#4a443e;margin-top:16px;max-width:820px}
+  @media(max-width:1024px){.tiers{grid-template-columns:1fr 1fr}}
+  @media(max-width:768px){
+    .wrap{padding:0 20px} section{padding:64px 0}
+    .prods,.two,.tiers,.fcols{grid-template-columns:1fr}
+    .nav-links{display:none} .cta-band{padding:48px 24px}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="brand"><span class="m"></span>Klargate</div>
+  <div class="nav-links"><a href="/klarion">Klarion</a><a href="#products">Products</a><a href="https://github.com/0x1Adi/Klarion/blob/main/docs/reference.md">Docs</a></div>
+  <div class="nav-r"><a href="https://github.com/0x1Adi/Klarion" class="btn btn-primary">Install Klarion</a></div>
+</div></nav>
+
+<section><div class="wrap hero">
+  <span class="badge"><span class="dot"></span>Open source · MIT licensed · self-hosted</span>
+  <h1 class="d-xl">Guard what your AI writes, and what it installs.</h1>
+  <p class="lead">Klargate builds the trust layer for AI-assisted development. Our first product, <b>Klarion</b>, puts an AI verdict on every leaked-secret finding — so teams fix real leaks instead of triaging noise.</p>
+  <div class="row"><a href="https://github.com/0x1Adi/Klarion" class="btn btn-primary">Install Klarion</a><a href="#products" class="btn btn-secondary">See how it works</a></div>
+</div></section>
+
+<section id="products" class="band"><div class="wrap">
+  <div class="head">
+    <div class="cap-up">Our first product</div>
+    <h2 class="d-lg">A verdict you can trust — on every secret.</h2>
+  </div>
+  <div class="prod p-pink" style="min-height:0">
+    <div>
+      <div class="top"><h3>Klarion</h3><span class="st">Available now</span></div>
+      <div class="role">Guards what you commit · AI-adjudicated secret detection</div>
+      <p style="max-width:620px">An AI issues a verdict and a reason on every candidate finding — real secret or noise. Open source, runs in your environment, and quieter than the pattern scanners we tested.</p>
+      <div class="kpis">
+        <div><b>89%</b><span>of alerts are real secrets</span></div>
+        <div><b>1.7x</b><span>more real secrets than gitleaks</span></div>
+        <div><b>0.6s</b><span>to scan 51 MB</span></div>
+      </div>
+    </div>
+    <a class="go" href="/klarion">Explore Klarion →</a>
+  </div>
+</div></section>
+
+<section id="run" class="band"><div class="wrap">
+  <div class="head">
+    <div class="cap-up">How it ships</div>
+    <h2 class="d-lg">Open source, self-hosted, free.</h2>
+    <p>You download it and run it, on your machine or in your CI. No backend, no telemetry, no account. The engine is MIT licensed, so you can read every rule it applies.</p>
+  </div>
+  <div class="two">
+    <div class="col">
+      <div class="cap-up">Klarion &middot; available now</div>
+      <h3>Guards what you commit</h3>
+      <ul>
+        <li>Deterministic detection, then a model judges each candidate</li>
+        <li>CLI, GitHub Action, GitLab CI, commit hooks</li>
+        <li>Claude Code plugin and MCP server for coding agents</li>
+      </ul>
+    </div>
+    <div class="col cloud">
+      <div class="cap-up">provmcp &middot; coming soon</div>
+      <h3>Guards what you install</h3>
+      <ul>
+        <li>Catches npm supply chain attacks</li>
+        <li>Before <code>npm install</code> runs</li>
+        <li>Same idea, applied to dependencies instead of code</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="cta-band">
+    <h2 class="d-md">Stop triaging false positives.</h2>
+    <p>Drop Klarion into one repo and see the real leaks in five minutes.</p>
+    <div class="row" style="justify-content:center">
+      <a href="https://github.com/0x1Adi/Klarion" class="btn btn-primary">Install Klarion</a>
+      <a href="https://github.com/0x1Adi/Klarion/blob/main/benchmark/REPORT.md" class="btn btn-secondary">Read the benchmark</a>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fcols">
+    <div>
+      <div class="brand" style="margin-bottom:16px"><span class="m"></span>Klargate</div>
+      <p style="font-size:14px;color:var(--muted);max-width:280px">The trust layer for AI-assisted development. Open source, self-host or hosted.</p>
+    </div>
+    <div><h4>Product</h4><a href="#products">Klarion</a><a href="https://github.com/0x1Adi/Klarion/blob/main/benchmark/REPORT.md">Benchmark</a></div>
+    <div><h4>Developers</h4><a href="https://github.com/0x1Adi/Klarion/blob/main/docs/reference.md">Docs</a><a href="https://github.com/0x1Adi/Klarion">GitHub</a><a href="https://github.com/0x1Adi/Klarion/blob/main/SECURITY.md">Security</a></div>
+    <div><h4>Company</h4><a href="https://github.com/0x1Adi/Klarion/issues">Contact</a></div>
+  </div>
+  <div class="fbot">
+    <span>© 2026 Klargate. &nbsp;·&nbsp; Next up: <a href="#run" style="color:var(--muted)">provmcp</a>, supply-chain defense for AI coding agents — coming soon.</span>
+    <span>Privacy · Terms · Security</span>
+  </div>
+  <p class="disc">"Klargate" is a working company name — verify trademark and domain before locking. Product metrics are each project's own benchmark; re-verify before external publishing.</p>
+</div></footer>
+
+</body>
+</html>
