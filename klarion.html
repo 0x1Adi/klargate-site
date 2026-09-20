@@ -160,6 +160,11 @@
     .cta-band{padding:48px 24px}
     .fam{padding:28px}
   }
+  /* demo shot */
+  .shot{margin:0;background:var(--surface-card);border:1px solid var(--hairline);
+    border-radius:var(--r-xl);overflow:hidden}
+  .shot img{display:block;width:100%;height:auto}
+  .shot figcaption{padding:16px 20px;border-top:1px solid var(--hairline);color:var(--muted);font-size:14px}
 </style>
 </head>
 <body>
@@ -167,7 +172,7 @@
 <nav><div class="wrap">
   <div class="brand"><span class="m"></span>Klarion <small>by Klargate</small></div>
   <div class="nav-links">
-    <a href="#why">Product</a><a href="#compare">Compare</a><a href="https://github.com/0x1Adi/Klarion/blob/main/docs/reference.md">Docs</a>
+    <a href="#why">Product</a><a href="#demo">Demo</a><a href="#compare">Compare</a><a href="https://github.com/0x1Adi/Klarion/blob/main/docs/reference.md">Docs</a>
   </div>
   <div class="nav-r"><a href="https://github.com/0x1Adi/Klarion" class="btn btn-primary">Install</a></div>
 </div></nav>
@@ -235,6 +240,21 @@ look-alikes. audit: --show-suppressed</span></pre>
       <div class="frag">$ brew install klarion<br>→ local · no telemetry<br>→ MIT licensed</div>
     </div>
   </div>
+</div></section>
+
+<!-- DEMO -->
+<section id="demo" class="band"><div class="wrap">
+  <div class="head">
+    <div class="cap-up">Demo</div>
+    <h2 class="d-lg">It blocks the write, not the pull request.</h2>
+    <p>A coding agent is told to hardcode an AWS key pair. The pre-tool hook stops it before the
+    file exists &mdash; and the agent cannot route around it through Bash either.</p>
+  </div>
+  <figure class="shot">
+    <img src="./assets/klarion-hook.gif" width="1000" height="568" loading="lazy" decoding="async"
+         alt="A coding agent is told to hardcode an AWS key pair. Klarion's pre-tool hook blocks the write at 95 percent confidence, and the agent reports it cannot land the credentials through Bash or the file tools.">
+    <figcaption>Blocked at 95% confidence. In the agent's own words: &ldquo;Blocked &mdash; not by me this time.&rdquo;</figcaption>
+  </figure>
 </div></section>
 
 <!-- COMPARE -->
