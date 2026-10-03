@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Klarion, the secret scanner that checks its own findings</title>
 <meta name="description" content="Rules and entropy find candidate secrets. A model reads each one in context and decides if it is real. The hook blocks your coding agent's write before the file exists.">
-<link rel="canonical" href="https://klargate.com/klarion.html">
+<link rel="canonical" href="https://klargate.com/klarion">
 <meta property="og:site_name" content="Klargate">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://klargate.com/klarion.html">
+<meta property="og:url" content="https://klargate.com/klarion">
 <meta property="og:title" content="Klarion, the secret scanner that checks its own findings">
 <meta property="og:description" content="Rules and entropy find candidate secrets. A model reads each one in context and decides if it is real. The hook blocks your coding agent's write before the file exists.">
 <meta property="og:image" content="https://klargate.com/assets/klarion-og.png">
@@ -206,21 +206,21 @@
   </div>
   <div class="term">
     <div class="bar"><i></i><i></i><i></i></div>
-    <pre><span class="c">$</span> klarion scan . --explain
+    <pre><span class="c">$</span> klarion scan .
 
-<span class="ok">✔</span> 1,204 files · 3,180 commits
+<span class="ok">✔</span> 1,204 files scanned in 612ms
   <span class="ok">2 secrets</span> <span class="m">· 198 suppressed</span>
 
 <span class="p">CRITICAL</span>  aws secret key
   <span class="m">config/prod.env:14</span>
-  verdict: <span class="p">SECRET</span> <span class="m">· live credential,
-  S3 write access</span>
+  verdict: <span class="p">SECRET</span> <span class="m">· 0.97, production
+  config, not a fixture</span>
 
 <span class="o">HIGH</span>      stripe key
   <span class="m">services/billing.py:39</span>
-  verdict: <span class="o">SECRET</span> <span class="m">· live payments key</span>
+  verdict: <span class="o">SECRET</span> <span class="m">· 0.96, sk_live in app code</span>
 
-<span class="m">198 suppressed — dead keys, fixtures,
+<span class="m">198 suppressed — fixtures, placeholders,
 look-alikes. audit: --show-suppressed</span></pre>
   </div>
 </div></section>
@@ -250,9 +250,9 @@ look-alikes. audit: --show-suppressed</span></pre>
     <div class="card c-ochre">
       <div>
         <h3>Runs where your code lives</h3>
-        <p>Open-source engine on your machine. Your code and secrets never leave — and you can verify that.</p>
+        <p>Open-source engine on your machine or in your CI. Only each candidate and a few nearby lines go to the model you choose; with a local Ollama model nothing leaves.</p>
       </div>
-      <div class="frag">$ brew install klarion<br>→ local · no telemetry<br>→ MIT licensed</div>
+      <div class="frag">$ brew install 0x1Adi/tap/klarion<br>→ no telemetry · no account<br>→ MIT licensed</div>
     </div>
   </div>
 </div></section>
@@ -338,7 +338,7 @@ look-alikes. audit: --show-suppressed</span></pre>
     <span>© 2026 Klargate. MIT licensed core. &nbsp;·&nbsp; Also from Klargate: <a href="#provmcp" style="color:var(--muted)">provmcp</a>, supply-chain defense for AI coding agents — coming soon.</span>
     <span>Privacy · Terms · Security</span>
   </div>
-  <p class="disc">Benchmark figures are Klarion's measured results (2026-07-09) against gitleaks, trufflehog, detect-secrets and ripsecrets. Method and raw output are published in the repo.</p>
+  <p class="disc">Benchmark figures: CredData run 2026-09-16, cross-tool run 2026-09-21 at Klarion 0.4.3, against gitleaks, trufflehog, detect-secrets and ripsecrets. Klarion's runs used Claude Haiku as the judge. Method, caveats and reproduction steps are in the repo.</p>
 </div></footer>
 
 </body>
