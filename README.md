@@ -9,6 +9,7 @@ repo and must never be added here.
 | `/` | `index.html` — Klargate, the company. Klarion now, provmcp coming soon |
 | `/klarion` | `klarion.html` — the Klarion product page |
 | `/evilsnooze/` | `evilsnooze/` — EvilSnooze (iPhone app by Aditya Tiwari; hosted here, not a Klargate product): about, `support`, `privacy`. The App Store listing and the app link to `support` and `privacy`: never move or rename them without updating the app. The privacy page mirrors `docs/privacy-policy.md` in the evilsnooze repo |
+| `/knuckleroad/` | `knuckleroad/` — Knuckle Road (iPhone app by Aditya Tiwari; hosted here, not a Klargate product): about, `support`, `privacy`, plus the `c/` challenge fallback page (ADR 0009). The App Store listing and the app link to `support` and `privacy`: never move or rename them without updating the app. The privacy page mirrors `docs/privacy-policy.md` in the knuckleroad repo |
 
 `CNAME` holds the custom domain. `.nojekyll` stops GitHub Pages running the files
 through Jekyll.
